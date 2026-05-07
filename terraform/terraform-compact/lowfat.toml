@@ -1,0 +1,10 @@
+[plugin]
+name = "terraform-compact"
+version = "0.1.0"
+description = "Compact terraform/tf/tofu output for LLM contexts"
+author = "zdk"
+commands = ["terraform", "tf", "tofu"]
+subcommands = ["plan", "apply", "destroy", "init", "validate", "fmt", "state", "output"]
+
+[runtime]
+entry = "filter.sh"

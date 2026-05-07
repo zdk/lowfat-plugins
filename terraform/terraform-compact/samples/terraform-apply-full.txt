@@ -1,0 +1,19 @@
+module.vpc.aws_vpc.main: Refreshing state... [id=vpc-abc123]
+module.vpc.aws_subnet.public[0]: Refreshing state... [id=subnet-def456]
+module.vpc.aws_subnet.public[1]: Refreshing state... [id=subnet-ghi789]
+
+aws_instance.web[0]: Creating...
+aws_instance.web[0]: Still creating... [10s elapsed]
+aws_instance.web[0]: Still creating... [20s elapsed]
+aws_instance.web[0]: Still creating... [30s elapsed]
+aws_instance.web[0]: Still creating... [40s elapsed]
+aws_instance.web[0]: Creation complete after 42s [id=i-0abc123def456]
+aws_security_group.web: Modifying... [id=sg-abc123]
+aws_security_group.web: Modifications complete after 2s [id=sg-abc123]
+
+Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
+
+Outputs:
+
+instance_id = "i-0abc123def456"
+public_ip = "54.123.45.67"
