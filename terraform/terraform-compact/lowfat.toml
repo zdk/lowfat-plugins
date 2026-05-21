@@ -1,6 +1,6 @@
 [plugin]
 name = "terraform-compact"
-version = "0.2.0"
+version = "0.3.0"
 description = "Compact terraform/tf/tofu output for LLM contexts"
 author = "zdk"
 commands = ["terraform", "tf", "tofu"]
