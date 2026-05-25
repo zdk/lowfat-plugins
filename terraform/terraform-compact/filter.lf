@@ -2,13 +2,9 @@
 # terraform-compact — compact terraform/tf/tofu output for LLM contexts.
 # Strips refresh/still-XYZ noise; keeps actions, summary, errors.
 #
-# Known gaps vs. the original filter.sh (kept alongside as fallback):
-#   1. Global flags before the subcommand (`terraform -chdir=foo plan`)
-#      fall through to the `*:` catch-all. Use `terraform plan -chdir=foo`
-#      for full compaction.
-#   2. Non-zero exits aren't routed to a conservative error branch
-#      (DSL has no exit-code selector yet). Errors still appear in
-#      sub-specific rules because `keep /Error/` is present.
+# Known gap: global flags before the subcommand
+# (`terraform -chdir=foo plan`) fall through to the `*:` catch-all.
+# Use `terraform plan -chdir=foo` for full compaction.
 
 # ── shared helpers ────────────────────────────────────────────────
 define strip-refresh:
@@ -23,79 +19,86 @@ define strip-plan-banner:
     drop /^─+$/
 
 # ── plan ──────────────────────────────────────────────────────────
-plan, ultra:
-    keep /^(Plan:|No changes\.|Error|Warning:)/
-    head 5
-    else "terraform plan: ok"
-
-plan, lite:
-    strip-refresh
-    strip-plan-banner
-    head 120
-
 plan:
-    strip-refresh
-    strip-plan-banner
-    head 60
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /^(Plan:|No changes\.|Error|Warning:)/
+        head 5
+        or "terraform plan: ok"
+    elif level lite:
+        strip-refresh
+        strip-plan-banner
+        head 120
+    else:
+        strip-refresh
+        strip-plan-banner
+        head 60
 
 # ── apply / destroy ───────────────────────────────────────────────
-apply|destroy, ultra:
-    keep /^(Apply complete!|Destroy complete!|Error|Warning:)/
-    head 5
-    else-shell: printf 'terraform %s: ok' "$sub"
-
-apply|destroy, lite:
-    strip-progress
-    head 100
-
 apply|destroy:
-    strip-progress
-    head 50
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /^(Apply complete!|Destroy complete!|Error|Warning:)/
+        head 5
+        or-shell: printf 'terraform %s: ok' "$sub"
+    elif level lite:
+        strip-progress
+        head 100
+    else:
+        strip-progress
+        head 50
 
 # ── init ──────────────────────────────────────────────────────────
-init, ultra:
-    keep /(successfully initialized|Upgrading|Error|Warning:|^- (Installing|Using|Reusing|Finding))/
-    head 10
-
-init, lite:
-    keep /(Initializing|Successfully configured|^- (Installing|Installed|Using|Reusing|Finding|Downloading)|successfully initialized|Upgrading|Error|Warning:)/
-    head 60
-
 init:
-    keep /(Initializing|Successfully configured|^- (Installing|Installed|Using|Reusing|Finding|Downloading)|successfully initialized|Upgrading|Error|Warning:)/
-    head 30
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(successfully initialized|Upgrading|Error|Warning:|^- (Installing|Using|Reusing|Finding))/
+        head 10
+    elif level lite:
+        keep /(Initializing|Successfully configured|^- (Installing|Installed|Using|Reusing|Finding|Downloading)|successfully initialized|Upgrading|Error|Warning:)/
+        head 60
+    else:
+        keep /(Initializing|Successfully configured|^- (Installing|Installed|Using|Reusing|Finding|Downloading)|successfully initialized|Upgrading|Error|Warning:)/
+        head 30
 
 # ── validate ──────────────────────────────────────────────────────
-validate, ultra:
-    keep /(Success!|Error|Warning:)/
-    head 10
-
 validate:
-    head 40
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(Success!|Error|Warning:)/
+        head 10
+    else:
+        head 40
 
 # ── fmt ───────────────────────────────────────────────────────────
 fmt:
     head 50
 
 # ── state (list / show) ──────────────────────────────────────────
-state, ultra:
-    head 30
-
-state, lite:
-    head 200
-
 state:
-    head 80
+    if exit failed:
+        raw
+    elif level ultra:
+        head 30
+    elif level lite:
+        head 200
+    else:
+        head 80
 
 # ── output ───────────────────────────────────────────────────────
-output, ultra:
-    head 40
-
-output, lite:
-    head 120
-
 output:
-    head 80
+    if exit failed:
+        raw
+    elif level ultra:
+        head 40
+    elif level lite:
+        head 120
+    else:
+        head 80
 
 # ── default ──────────────────────────────────────────────────────
 *:
