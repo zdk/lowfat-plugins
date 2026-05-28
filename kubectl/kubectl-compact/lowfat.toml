@@ -1,0 +1,11 @@
+[plugin]
+name = "kubectl-compact"
+version = "0.6.0"
+description = "Compact kubectl/k output for LLM contexts"
+author = "zdk"
+commands = ["kubectl", "k"]
+subcommands = ["get", "describe", "apply", "delete", "logs", "events"]
+bin = "kubectl"
+
+[runtime]
+entry = "filter.lf"

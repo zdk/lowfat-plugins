@@ -1,0 +1,104 @@
+#!/usr/bin/env lowfat-filter
+# kubectl-compact — compact kubectl/k output for LLM contexts.
+# env: $sub $level $exit $args
+# Every rule passes raw output straight through on a non-zero exit.
+
+# managedFields and its 6 child keys — the biggest noise block in YAML output.
+define drop-managed-fields-yaml:
+    drop /(managedFields:|  - manager:|    operation:|    time:|    apiVersion:|    fieldsType:|    fieldsV1:)/
+
+# `describe` uses capitalized labels with different indentation.
+define drop-managed-fields-desc:
+    drop /(Managed Fields:|  Manager:|    Operation:|    Time:|    API Version:|    Fields Type:)/
+
+# ── get (YAML / table) ────────────────────────────────────────────
+get:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                drop-managed-fields-yaml
+                drop /^\s*$/
+                head 30
+            lite:
+                drop-managed-fields-yaml
+                head 200
+            else:
+                drop-managed-fields-yaml
+                drop /kubectl\.kubernetes\.io\/last-applied-configuration/
+                drop /^\s*f:[a-zA-Z]/
+                head 80
+
+# ── describe ──────────────────────────────────────────────────────
+describe:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /^(Name:|Namespace:|Labels:|Status:|Type |Node:|IP:|Events:|  Type|  ----|  Normal|  Warning|Conditions:|Ready|Replicas:)/
+                head 40
+            lite:
+                drop-managed-fields-desc
+                head 300
+            else:
+                drop-managed-fields-desc
+                drop /kubectl\.kubernetes\.io\/last-applied-configuration/
+                head 150
+
+# ── apply / delete ────────────────────────────────────────────────
+apply:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /(configured|created|unchanged|error|warning)/
+                head 20
+            lite:
+                head 80
+            else:
+                head 40
+
+delete:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /(deleted|error|warning|not found)/
+                head 15
+            lite:
+                head 60
+            else:
+                head 30
+
+# ── logs (always tail) ────────────────────────────────────────────
+logs:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra: tail 50
+            lite:  tail 200
+            else:  tail 100
+
+# ── events ────────────────────────────────────────────────────────
+events:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /(Warning|Error|LAST SEEN|TYPE)/
+                head 25
+            lite:
+                head 100
+            else:
+                head 50
+
+# ── default ───────────────────────────────────────────────────────
+*:
+    if exit failed:  raw
+    else:            head 40
