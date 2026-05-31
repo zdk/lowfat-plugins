@@ -1,0 +1,33 @@
+#!/usr/bin/env lowfat-filter
+# psql-compact — compact psql output for LLM contexts.
+# env: $sub $level $exit $args
+
+# Connection / setup banner emitted at session start; rarely useful.
+define strip-banner:
+    drop /^psql \(\d/
+    drop /^Type "help" for help/
+    drop /^SSL connection /
+    drop /^You are connected to /
+
+# NOTICE/INFO lines (functions raising RAISE NOTICE, etc.) are usually noise.
+define strip-notices:
+    drop /^NOTICE: /
+    drop /^INFO: /
+    drop /^DEBUG: /
+
+# ── default (only) ────────────────────────────────────────────────
+*:
+    if exit failed:
+        strip-banner
+        head 200
+    elif level ultra:
+        strip-banner
+        strip-notices
+        head 40
+    elif level lite:
+        strip-banner
+        head 300
+    else:
+        strip-banner
+        strip-notices
+        head 120

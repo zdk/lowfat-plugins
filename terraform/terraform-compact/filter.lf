@@ -1,0 +1,100 @@
+#!/usr/bin/env lowfat-filter
+# terraform-compact — compact terraform/tf/tofu output for LLM contexts.
+# Strips refresh/still-XYZ noise; keeps actions, summary, errors.
+# Every rule passes raw output straight through on a non-zero exit —
+# terraform error blocks must reach the agent intact.
+#
+# Known limitation: a global flag before the subcommand
+# (`terraform -chdir=foo plan`) makes `-chdir=foo` the detected subcommand,
+# so it falls to the `*:` catch-all. Use `terraform plan -chdir=foo` instead.
+
+# ── shared helpers ────────────────────────────────────────────────
+define strip-refresh:
+    drop /: (Refreshing state|Reading|Read complete after )/
+
+define strip-progress:
+    drop /: (Refreshing state|Reading|Still (creating|destroying|modifying))\.\.\./
+    drop /: (Creation|Modifications|Destruction|Read) complete after /
+
+define strip-plan-banner:
+    drop /^(Note: Objects have changed|Terraform (will perform|detected|used)|(plan\. )?Resource actions are indicated|Unless you have made|Saved the plan to:|To perform exactly these actions,|    terraform apply )/
+    drop /^─+$/
+
+# ── plan ──────────────────────────────────────────────────────────
+plan:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /^(Plan:|No changes\.|Error|Warning:)/
+        head 5
+        or "terraform plan: ok"
+    elif level lite:
+        strip-refresh
+        strip-plan-banner
+        head 120
+    else:
+        strip-refresh
+        strip-plan-banner
+        head 60
+
+# ── apply / destroy ───────────────────────────────────────────────
+apply|destroy:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /^(Apply complete!|Destroy complete!|Error|Warning:)/
+        head 5
+        or-shell: printf 'terraform %s: ok' "$sub"
+    elif level lite:
+        strip-progress
+        head 100
+    else:
+        strip-progress
+        head 50
+
+# ── init ──────────────────────────────────────────────────────────
+init:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(successfully initialized|Upgrading|Error|Warning:|^- (Installing|Using|Reusing|Finding))/
+        head 10
+    elif level lite:
+        keep /(Initializing|Successfully configured|^- (Installing|Installed|Using|Reusing|Finding|Downloading)|successfully initialized|Upgrading|Error|Warning:)/
+        head 60
+    else:
+        keep /(Initializing|Successfully configured|^- (Installing|Installed|Using|Reusing|Finding|Downloading)|successfully initialized|Upgrading|Error|Warning:)/
+        head 30
+
+# ── validate ──────────────────────────────────────────────────────
+validate:
+    if exit failed:    raw
+    elif level ultra:
+        keep /(Success!|Error|Warning:)/
+        head 10
+    else:
+        head 40
+
+# ── fmt ───────────────────────────────────────────────────────────
+fmt:
+    if exit failed:  raw
+    else:            head 50
+
+# ── state (list / show) ──────────────────────────────────────────
+state:
+    if exit failed:    raw
+    elif level ultra:  head 30
+    elif level lite:   head 200
+    else:              head 80
+
+# ── output ───────────────────────────────────────────────────────
+output:
+    if exit failed:    raw
+    elif level ultra:  head 40
+    elif level lite:   head 120
+    else:              head 80
+
+# ── default ──────────────────────────────────────────────────────
+*:
+    if exit failed:  raw
+    else:            head 30

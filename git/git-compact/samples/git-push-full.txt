@@ -1,0 +1,13 @@
+Enumerating objects: 17, done.
+Counting objects: 100% (17/17), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (9/9), done.
+Writing objects: 100% (9/9), 1.42 KiB | 1.42 MiB/s, done.
+Total 9 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+remote:
+remote: Create a pull request for 'feature/auth-refactor' on GitHub by visiting:
+remote:      https://github.com/example/repo/pull/new/feature/auth-refactor
+remote:
+To github.com:example/repo.git
+   a1b2c3d..e4f5g6h  feature/auth-refactor -> feature/auth-refactor

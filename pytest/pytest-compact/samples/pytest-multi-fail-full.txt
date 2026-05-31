@@ -1,0 +1,77 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.8, pytest-8.1.2, pluggy-1.4.0
+cachedir: .pytest_cache
+rootdir: /home/runner/work/my-service
+configfile: pytest.ini
+plugins: cov-5.0.0, asyncio-0.21.0, mock-3.12.0, httpx-0.26.0, factoryboy-2.7.0
+collected 312 items
+
+tests/integration/test_api.py .................................F.......F.....  [ 18%]
+tests/integration/test_auth.py .............................                   [ 27%]
+tests/integration/test_billing.py .............F..............                 [ 38%]
+tests/unit/test_models.py ........................................              [ 51%]
+tests/unit/test_services.py .................................F.................  [ 65%]
+tests/unit/test_tasks.py ......................................                 [ 77%]
+tests/unit/test_utils.py ...............................                        [ 87%]
+tests/unit/test_validators.py ........F...............                         [100%]
+
+=================================== FAILURES ===================================
+____________________ test_create_order_duplicate_idempotency ____________________
+
+    def test_create_order_duplicate_idempotency():
+        """Submitting the same order twice must return the existing record."""
+        order = create_order(user_id=1, item_id=42, qty=1)
+        duplicate = create_order(user_id=1, item_id=42, qty=1)
+>       assert order.id == duplicate.id
+E       AssertionError: assert 1 != 2
+E        +  where 1 = Order(id=1, item_id=42, qty=1).id
+E        +  and   2 = Order(id=2, item_id=42, qty=1).id
+
+tests/integration/test_api.py:88: AssertionError
+_________________________ test_rate_limit_exceeded _____________________________
+
+    def test_rate_limit_exceeded():
+        """Rapid repeated requests should return 429."""
+        for _ in range(60):
+            resp = client.get("/api/ping")
+        resp = client.get("/api/ping")
+>       assert resp.status_code == 429
+E       AssertionError: assert 200 == 429
+
+tests/integration/test_api.py:211: AssertionError
+___________________ test_invoice_generated_on_payment_success ___________________
+
+    def test_invoice_generated_on_payment_success():
+        """A completed payment must trigger an invoice PDF."""
+        payment = complete_payment(amount=99_00)
+>       assert payment.invoice_url is not None
+E       AssertionError: assert None is not None
+
+tests/integration/test_billing.py:134: AssertionError
+_________________________ test_send_order_notification __________________________
+
+    def test_send_order_notification():
+        """Service must queue an email after order creation."""
+        order = create_order(user_id=5, item_id=7, qty=2)
+>       assert mock_mailer.call_count == 1
+E       AssertionError: assert 0 == 1
+
+tests/unit/test_services.py:267: AssertionError
+_______________________ test_validator_strips_html_tags _________________________
+
+    def test_validator_strips_html_tags():
+        """HTML in text fields must be stripped before persistence."""
+        result = validate_text("<b>hello</b>")
+>       assert result == "hello"
+E       AssertionError: assert "<b>hello</b>" == "hello"
+E         - hello
+E         + <b>hello</b>
+
+tests/unit/test_validators.py:78: AssertionError
+=========================== short test summary info ============================
+FAILED tests/integration/test_api.py::test_create_order_duplicate_idempotency - AssertionError: assert 1 != 2
+FAILED tests/integration/test_api.py::test_rate_limit_exceeded - AssertionError: assert 200 == 429
+FAILED tests/integration/test_billing.py::test_invoice_generated_on_payment_success - AssertionError: assert None is not None
+FAILED tests/unit/test_services.py::test_send_order_notification - AssertionError: assert 0 == 1
+FAILED tests/unit/test_validators.py::test_validator_strips_html_tags - AssertionError
+==================== 5 failed, 307 passed in 18.44s ============================

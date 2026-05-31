@@ -1,0 +1,11 @@
+[plugin]
+name = "cargo-compact"
+version = "0.1.0"
+description = "Compact cargo output for LLM contexts"
+author = "zdk"
+commands = ["cargo"]
+subcommands = ["build", "check", "test", "clippy", "run", "doc", "fmt", "update", "install", "publish", "bench"]
+bin = "cargo"
+
+[runtime]
+entry = "filter.lf"

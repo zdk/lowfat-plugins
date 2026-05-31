@@ -1,0 +1,11 @@
+[plugin]
+name = "curl-compact"
+version = "0.1.0"
+description = "Compact curl output for LLM contexts (strips verbose handshake + progress)"
+author = "zdk"
+commands = ["curl"]
+subcommands = []
+bin = "curl"
+
+[runtime]
+entry = "filter.lf"

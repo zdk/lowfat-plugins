@@ -1,0 +1,35 @@
+#!/usr/bin/env lowfat-filter
+# ansible-compact — compact ansible-playbook / ansible output for LLM contexts.
+# env: $sub $level $exit $args
+# Routes everything through the catch-all because ansible/ansible-playbook
+# don't have subcommands — positional args are playbook/host targets.
+
+# `ok:` and `skipping:` host lines are the biggest noise: one per host
+# per task. Failures and changes are what an agent needs to see.
+define drop-ok-status:
+    drop /^ok: \[/
+    drop /^skipping: \[/
+
+# Per-host meta info ("META: ran handlers", "META: noop") and the
+# task-summary divider lines.
+define strip-meta:
+    drop /^META: /
+    drop /^\s*$/
+    drop /^\*+$/
+
+# ── default (only) ────────────────────────────────────────────────
+*:
+    if exit failed:
+        keep /^(PLAY |TASK |fatal:|FAILED|failed:|changed:|PLAY RECAP|\S+\s+:\s+ok=)/
+        head 300
+    elif level ultra:
+        keep /^(PLAY \[|TASK \[|fatal:|failed:|changed:|PLAY RECAP|\S+\s+:\s+ok=)/
+        head 80
+        or "ansible-playbook: ok"
+    elif level lite:
+        drop-ok-status
+        head 400
+    else:
+        drop-ok-status
+        strip-meta
+        head 200

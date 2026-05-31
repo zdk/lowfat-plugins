@@ -1,0 +1,11 @@
+[plugin]
+name = "ansible-compact"
+version = "0.1.0"
+description = "Compact ansible/ansible-playbook output for LLM contexts"
+author = "zdk"
+commands = ["ansible-playbook", "ansible"]
+subcommands = []
+bin = "ansible-playbook"
+
+[runtime]
+entry = "filter.lf"

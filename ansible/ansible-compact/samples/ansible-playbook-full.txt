@@ -1,0 +1,56 @@
+PLAY [Deploy webapp] ***********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web-01]
+ok: [web-02]
+ok: [web-03]
+
+TASK [common : Install base packages] ******************************************
+ok: [web-01]
+ok: [web-02]
+ok: [web-03]
+
+TASK [common : Ensure firewall is configured] **********************************
+changed: [web-01]
+changed: [web-02]
+changed: [web-03]
+
+TASK [nginx : Install nginx] ***************************************************
+ok: [web-01]
+ok: [web-02]
+ok: [web-03]
+
+TASK [nginx : Copy config] *****************************************************
+changed: [web-01]
+changed: [web-02]
+changed: [web-03]
+
+TASK [nginx : Enable site] *****************************************************
+ok: [web-01]
+ok: [web-02]
+ok: [web-03]
+
+TASK [nginx : Reload nginx] ****************************************************
+changed: [web-01]
+changed: [web-02]
+changed: [web-03]
+
+TASK [app : Pull latest container] *********************************************
+ok: [web-01]
+ok: [web-02]
+ok: [web-03]
+
+TASK [app : Run database migrations] *******************************************
+ok: [web-01]
+skipping: [web-02]
+skipping: [web-03]
+
+TASK [app : Restart service] ***************************************************
+changed: [web-01]
+changed: [web-02]
+fatal: [web-03]: FAILED! => {"changed": false, "msg": "Service failed to start: Address already in use on port 8080", "rc": 1}
+
+PLAY RECAP *********************************************************************
+web-01                     : ok=10   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+web-02                     : ok=9    changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+web-03                     : ok=8    changed=3    unreachable=0    failed=1    skipped=1    rescued=0    ignored=0

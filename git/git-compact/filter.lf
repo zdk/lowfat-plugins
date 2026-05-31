@@ -1,0 +1,121 @@
+#!/usr/bin/env lowfat-filter
+# git-compact — compact git output for LLM contexts.
+# env: $sub $level $exit $args
+# Every rule passes raw output straight through on a non-zero exit —
+# git error/conflict blocks must reach the agent intact.
+
+# ── shared helpers ────────────────────────────────────────────────
+# Progress chatter from network ops: every push/pull/fetch/clone emits
+# these regardless of how quiet --quiet pretends to be.
+define strip-progress:
+    drop /^(Enumerating objects|Counting objects|Compressing objects|Writing objects|Receiving objects|Resolving deltas|Total \d|remote: (Enumerating|Counting|Compressing|Resolving|Total))/
+
+# Long "(use git ... to ...)" guidance lines under porcelain output.
+define strip-hints:
+    drop /^hint:/
+    drop /^Auto-packing/
+    drop /^\s+\(use /
+    drop /^\s+\(commit or discard /
+
+# ── status ────────────────────────────────────────────────────────
+status:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /^(On branch|Your branch|HEAD detached|nothing to commit|	|modified:|new file:|deleted:|renamed:|Untracked files:|Changes (not staged|to be committed):)/
+                head 40
+            lite:
+                strip-hints
+                head 150
+            else:
+                strip-hints
+                head 80
+
+# ── log ───────────────────────────────────────────────────────────
+# Date: lines are redundant with commit ordering; drop for an easy win on
+# unbounded `git log`. At ultra we keep only the metadata headers.
+log:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /^(commit |Merge: |Author: )/
+                head 40
+            lite:
+                drop /^Date:/
+                head 250
+            else:
+                drop /^Date:/
+                head 120
+
+# ── diff / show ───────────────────────────────────────────────────
+diff|show:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /^(diff --git|@@|---|\+\+\+|\+[^+]|-[^-])/
+                head 80
+            lite:
+                head 400
+            else:
+                head 200
+
+# ── push / pull / fetch / clone ───────────────────────────────────
+push|pull|fetch|clone:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-progress
+        keep /^(To |From |   [0-9a-f]+\.\.[0-9a-f]+|Already up to date|Updating |Fast-forward| \d+ file|Branch |\* \[new)/
+        head 10
+        or-shell: printf 'git %s: ok' "$sub"
+    elif level lite:
+        strip-progress
+        head 60
+    else:
+        strip-progress
+        head 25
+
+# ── branch ────────────────────────────────────────────────────────
+branch:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra: head 25
+            lite:  head 150
+            else:  head 60
+
+# ── add / reset / restore / stash / tag ──────────────────────────
+add|reset|restore|stash|tag:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-hints
+        head 5
+        or-shell: printf 'git %s: ok' "$sub"
+    else:
+        strip-hints
+        head 25
+
+# ── commit ────────────────────────────────────────────────────────
+commit:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /^\[/
+        head 3
+        or "git commit: ok"
+    else:
+        strip-hints
+        head 30
+
+# ── default ───────────────────────────────────────────────────────
+*:
+    if exit failed:  raw
+    else:            head 40

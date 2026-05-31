@@ -1,0 +1,110 @@
+#!/usr/bin/env lowfat-filter
+# aws-compact — compact AWS CLI output for LLM contexts.
+# env: $sub $level $exit $args
+# $sub is the service name (ec2, s3, iam, ...). The action verb
+# (describe-instances, list-buckets) is the next argument — we don't
+# split on it here because filter strategy is the same across actions
+# within a service: JSON describe-* output is what blows up token budget.
+
+# JSON-specific noise: pure structural lines with no data and empty
+# collections that AWS emits for almost every resource ("Groups": [],
+# "ProductCodes": [], "Ipv6Addresses": [], ...).
+define strip-json-frame:
+    drop /^\s*[\{\}\[\],]\s*$/
+
+define strip-empty-collections:
+    drop /^\s+"[A-Za-z]+": \[\],?$/
+    drop /^\s+"[A-Za-z]+": \{\},?$/
+    drop /^\s+"[A-Za-z]+": "",?$/
+
+# ── ec2 / rds / lambda / ecs / eks / cloudformation (verbose JSON) ──
+ec2|rds|lambda|ecs|eks|cloudformation|elbv2|elasticache:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-json-frame
+        strip-empty-collections
+        head 40
+    elif level lite:
+        strip-empty-collections
+        head 500
+    else:
+        strip-json-frame
+        strip-empty-collections
+        head 80
+
+# ── iam (huge with attached policies) ─────────────────────────────
+iam:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /("(UserName|RoleName|PolicyName|Arn|CreateDate)":)/
+        head 60
+    elif level lite:
+        strip-empty-collections
+        head 500
+    else:
+        strip-json-frame
+        strip-empty-collections
+        head 100
+
+# ── s3 (file listings) ────────────────────────────────────────────
+s3:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 30
+    elif level lite:
+        head 500
+    else:
+        head 100
+
+# ── logs (get-log-events: timestamps + messages) ──────────────────
+logs:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 40
+    elif level lite:
+        head 500
+    else:
+        head 100
+
+# ── dynamodb (type-annotated values inflate output) ───────────────
+dynamodb:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-json-frame
+        strip-empty-collections
+        head 40
+    elif level lite:
+        strip-empty-collections
+        head 500
+    else:
+        strip-json-frame
+        strip-empty-collections
+        head 100
+
+# ── sts / sqs / sns / ssm (smaller responses) ─────────────────────
+sts|sqs|sns|ssm:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 25
+    elif level lite:
+        head 300
+    else:
+        head 60
+
+# ── default ───────────────────────────────────────────────────────
+*:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 40
+    elif level lite:
+        head 400
+    else:
+        strip-empty-collections
+        head 80

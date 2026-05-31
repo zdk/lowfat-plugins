@@ -1,0 +1,75 @@
+Name:             web-deployment-7d6b8f9c4-k8xqp
+Namespace:        production
+Priority:         0
+Service Account:  web-service-account
+Node:             gke-prod-cluster-default-pool-abc123/10.0.1.10
+Start Time:       Fri, 15 Mar 2024 10:22:31 +0000
+Labels:           app=web
+                  pod-template-hash=7d6b8f9c4
+Annotations:      <none>
+Status:           Running
+IP:               10.244.1.42
+IPs:
+  IP:           10.244.1.42
+Controlled By:  ReplicaSet/web-deployment-7d6b8f9c4
+Containers:
+  web:
+    Container ID:   containerd://abc123def456789012345678
+    Image:          myregistry.io/web:v1.4.2
+    Image ID:       myregistry.io/web@sha256:deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678
+    Port:           8080/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 15 Mar 2024 10:22:44 +0000
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     500m
+      memory:  512Mi
+    Requests:
+      cpu:        100m
+      memory:     128Mi
+    Environment:
+      DB_HOST:      db-primary.production.svc.cluster.local
+      DB_PORT:      5432
+      REDIS_URL:    redis://cache-01.production.svc.cluster.local:6379
+      LOG_LEVEL:    info
+      APP_ENV:      production
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-xyz (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  kube-api-access-xyz:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Managed Fields:
+  Manager:         kube-controller-manager
+  Operation:       Update
+  API Version:     v1
+  Fields Type:     FieldsV1
+  Time:            2024-03-15T10:22:31Z
+  Manager:         kubelet
+  Operation:       Update
+  API Version:     v1
+  Fields Type:     FieldsV1
+  Time:            2024-03-15T10:22:45Z
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ---   ----               -------
+  Normal  Scheduled  10m   default-scheduler  Successfully assigned production/web-deployment-7d6b8f9c4-k8xqp to gke-prod-cluster-default-pool-abc123
+  Normal  Pulling    10m   kubelet            Pulling image "myregistry.io/web:v1.4.2"
+  Normal  Pulled     10m   kubelet            Successfully pulled image "myregistry.io/web:v1.4.2" in 8.234s
+  Normal  Created    10m   kubelet            Created container web
+  Normal  Started    10m   kubelet            Started container web

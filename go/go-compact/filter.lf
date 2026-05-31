@@ -1,0 +1,70 @@
+#!/usr/bin/env lowfat-filter
+# go-compact — compact go output for LLM contexts.
+# env: $sub $level $exit $args
+
+# ── test ──────────────────────────────────────────────────────────
+test:
+    if exit failed:
+        keep /(^=== RUN|^--- FAIL|^--- PASS|^FAIL|^ok\b|^PASS\b|panic:|^\s+.+_test\.go:|Error:|--- SKIP)/
+        head 300
+    elif level ultra:
+        keep /(^--- (FAIL|PASS)|^FAIL|^ok\b|^PASS\b)/
+        head 50
+        or "go test: ok"
+    elif level lite:
+        head 300
+    else:
+        drop /^=== (RUN|PAUSE|CONT)/
+        head 150
+
+# ── build / vet ───────────────────────────────────────────────────
+build|vet:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 30
+        or "go $sub: ok"
+    else:
+        head 100
+
+# ── mod ───────────────────────────────────────────────────────────
+mod:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 30
+        or "go mod: ok"
+    else:
+        head 100
+
+# ── get / install ─────────────────────────────────────────────────
+get|install:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(go: (downloading|added|removed|upgraded)|Error)/
+        head 25
+        or "go $sub: ok"
+    else:
+        head 80
+
+# ── run ───────────────────────────────────────────────────────────
+run:
+    if exit failed:
+        raw
+    elif level ultra:
+        head 40
+    elif level lite:
+        head 300
+    else:
+        head 150
+
+# ── fmt ───────────────────────────────────────────────────────────
+fmt:
+    if exit failed:  raw
+    else:            head 40
+
+# ── default ───────────────────────────────────────────────────────
+*:
+    if exit failed:  raw
+    else:            head 40

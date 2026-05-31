@@ -1,0 +1,11 @@
+[plugin]
+name = "go-compact"
+version = "0.1.0"
+description = "Compact go output for LLM contexts"
+author = "zdk"
+commands = ["go"]
+subcommands = ["test", "build", "run", "vet", "mod", "get", "fmt", "install", "doc"]
+bin = "go"
+
+[runtime]
+entry = "filter.lf"

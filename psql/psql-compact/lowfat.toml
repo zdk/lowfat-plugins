@@ -1,0 +1,11 @@
+[plugin]
+name = "psql-compact"
+version = "0.1.0"
+description = "Compact psql output for LLM contexts"
+author = "zdk"
+commands = ["psql"]
+subcommands = []
+bin = "psql"
+
+[runtime]
+entry = "filter.lf"

@@ -1,0 +1,22 @@
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated har-validator@5.1.5: this library is no longer supported
+npm warn deprecated request@2.88.2: request has been deprecated, see https://github.com/request/request/issues/3142
+npm warn deprecated uuid@3.4.0: Please upgrade to version 7 or higher.
+npm warn deprecated @types/lodash-es@4.17.12: This is a stub types definition.
+
+added 847 packages, and audited 848 packages in 18s
+
+178 packages are looking for funding
+  run `npm fund` for details
+
+42 vulnerabilities (12 low, 18 moderate, 9 high, 3 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.

@@ -1,0 +1,40 @@
+=== RUN   TestParseQuery
+--- PASS: TestParseQuery (0.00s)
+=== RUN   TestParseQueryEmpty
+--- PASS: TestParseQueryEmpty (0.00s)
+=== RUN   TestParseQueryMalformed
+--- PASS: TestParseQueryMalformed (0.00s)
+=== RUN   TestHandlerGet
+--- PASS: TestHandlerGet (0.01s)
+=== RUN   TestHandlerPost
+--- PASS: TestHandlerPost (0.02s)
+=== RUN   TestHandlerDelete
+--- FAIL: TestHandlerDelete (0.00s)
+    handler_test.go:142: expected status 204, got 200
+    handler_test.go:143: response body: {"deleted":false,"reason":"already gone"}
+=== RUN   TestRateLimiter
+--- PASS: TestRateLimiter (0.05s)
+=== RUN   TestRateLimiterBurst
+--- PASS: TestRateLimiterBurst (0.10s)
+=== RUN   TestRateLimiterRecovery
+--- PASS: TestRateLimiterRecovery (0.50s)
+=== RUN   TestDB
+=== PAUSE TestDB
+=== CONT  TestDB
+--- PASS: TestDB (1.20s)
+=== RUN   TestDBConcurrent
+--- PASS: TestDBConcurrent (0.80s)
+=== RUN   TestCacheLRU
+--- PASS: TestCacheLRU (0.00s)
+=== RUN   TestCacheTTL
+--- PASS: TestCacheTTL (0.00s)
+=== RUN   TestMetrics
+--- PASS: TestMetrics (0.00s)
+FAIL
+exit status 1
+FAIL    github.com/example/myapp/internal/handler    2.871s
+ok      github.com/example/myapp/internal/cache      0.012s
+ok      github.com/example/myapp/internal/db         2.001s
+ok      github.com/example/myapp/internal/metrics    0.005s
+ok      github.com/example/myapp/internal/parser     0.003s
+ok      github.com/example/myapp/internal/ratelimit  0.612s

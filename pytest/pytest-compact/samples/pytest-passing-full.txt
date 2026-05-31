@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.3, pytest-8.2.1, pluggy-1.5.0
+cachedir: .pytest_cache
+rootdir: /Users/dev/projects/my-app
+configfile: pyproject.toml
+plugins: anyio-4.4.0, cov-5.0.0, asyncio-0.23.7, mock-3.14.0, hypothesis-6.103.1
+collected 185 items
+
+tests/unit/test_auth.py ..............................                          [ 16%]
+tests/unit/test_config.py ....................                                  [ 27%]
+tests/unit/test_db.py ...................................                       [ 45%]
+tests/unit/test_handlers.py ..........................                          [ 59%]
+tests/unit/test_models.py .......................                               [ 72%]
+tests/unit/test_serializers.py .................                               [ 81%]
+tests/unit/test_utils.py .................................                      [ 95%]
+tests/unit/test_validators.py .........                                        [100%]
+
+============================== 185 passed in 4.12s =============================

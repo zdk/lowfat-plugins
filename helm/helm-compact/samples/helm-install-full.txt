@@ -1,0 +1,96 @@
+NAME: my-app
+LAST DEPLOYED: Thu May 30 16:42:18 2026
+NAMESPACE: production
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Get the application URL by running these commands:
+     export POD_NAME=$(kubectl get pods --namespace production -l "app.kubernetes.io/name=my-app,app.kubernetes.io/instance=my-app" -o jsonpath="{.items[0].metadata.name}")
+     export CONTAINER_PORT=$(kubectl get pod --namespace production $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+     echo "Visit http://127.0.0.1:8080 to use your application"
+     kubectl --namespace production port-forward $POD_NAME 8080:$CONTAINER_PORT
+
+2. Provision the database secret:
+     kubectl create secret generic my-app-db --from-literal=password=$(openssl rand -hex 16) -n production
+
+3. Verify the deployment health:
+     kubectl --namespace production rollout status deployment/my-app
+     kubectl --namespace production get pods -l app.kubernetes.io/instance=my-app
+
+MANIFEST:
+---
+# Source: my-app/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-app
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: my-app/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app
+---
+# Source: my-app/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: my-app
+      app.kubernetes.io/instance: my-app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: my-app
+        app.kubernetes.io/instance: my-app
+    spec:
+      serviceAccountName: my-app
+      containers:
+        - name: my-app
+          image: "ghcr.io/example/my-app:1.0.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

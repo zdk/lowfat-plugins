@@ -1,0 +1,45 @@
+    Updating crates.io index
+   Compiling autocfg v1.3.0
+   Compiling libc v0.2.155
+   Compiling cfg-if v1.0.0
+   Compiling once_cell v1.19.0
+   Compiling pin-project-lite v0.2.14
+   Compiling memchr v2.7.2
+   Compiling smallvec v1.13.2
+   Compiling parking_lot_core v0.9.10
+   Compiling lock_api v0.4.12
+   Compiling parking_lot v0.12.3
+   Compiling proc-macro2 v1.0.86
+   Compiling unicode-ident v1.0.12
+   Compiling quote v1.0.36
+   Compiling syn v2.0.66
+   Compiling serde_derive v1.0.203
+   Compiling serde v1.0.203
+   Compiling regex-syntax v0.8.4
+   Compiling regex-automata v0.4.6
+   Compiling regex v1.10.4
+   Compiling lazy_static v1.4.0
+   Compiling anyhow v1.0.86
+   Compiling thiserror-impl v1.0.61
+   Compiling thiserror v1.0.61
+   Compiling tokio-macros v2.3.0
+   Compiling tokio v1.38.0
+   Compiling my-crate v0.1.0 (/Users/dev/projects/my-crate)
+warning: unused variable: `unused_var`
+  --> src/handler.rs:42:9
+   |
+42 |     let unused_var = compute_thing();
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_unused_var`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: function `legacy_helper` is never used
+  --> src/legacy.rs:18:4
+   |
+18 | fn legacy_helper() -> String {
+   |    ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: `my-crate` (lib) generated 2 warnings (run `cargo fix --lib -p my-crate` to apply 2 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 18.71s

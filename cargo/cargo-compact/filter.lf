@@ -1,0 +1,115 @@
+#!/usr/bin/env lowfat-filter
+# cargo-compact — compact cargo output for LLM contexts.
+# env: $sub $level $exit $args
+# Every rule passes raw output straight through on a non-zero exit unless
+# we can do better — compile errors must reach the agent intact.
+
+# ── shared helpers ────────────────────────────────────────────────
+# The big noise sources: per-crate Compiling/Downloading chatter,
+# the final Finished line, and the indent-only continuation lines under
+# warnings ("    |", "   --> path:line:col").
+define strip-compile:
+    drop /^   Compiling /
+    drop /^    Updating /
+    drop /^   Downloading /
+    drop /^  Downloaded /
+    drop /^    Finished /
+    drop /^     Running /
+    drop /^    Blocking /
+    drop /^    Checking /
+
+define strip-warn-meta:
+    drop /^   --> /
+    drop /^    = note:/
+
+# ── build / check ─────────────────────────────────────────────────
+build|check:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-compile
+        keep /(warning:|error|note: |help:)/
+        head 40
+        or "cargo $sub: ok"
+    elif level lite:
+        head 250
+    else:
+        strip-compile
+        head 80
+
+# ── clippy ────────────────────────────────────────────────────────
+clippy:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-compile
+        keep /(warning:|error|help:|^   = note:)/
+        head 40
+        or "cargo clippy: ok"
+    elif level lite:
+        head 300
+    else:
+        strip-compile
+        head 100
+
+# ── test ──────────────────────────────────────────────────────────
+test:
+    if exit failed:
+        strip-compile
+        keep /(test result:|FAILED|failures:|---- |running |^test .+ \.\.\. (ok|FAILED|ignored)|panicked at|thread .+ panicked)/
+        head 250
+    elif level ultra:
+        keep /(test result:|FAILED|^test .+ \.\.\. (ok|FAILED))/
+        head 40
+        or "cargo test: ok"
+    elif level lite:
+        strip-compile
+        head 300
+    else:
+        strip-compile
+        head 150
+
+# ── run / doc ─────────────────────────────────────────────────────
+run|doc:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-compile
+        head 30
+    elif level lite:
+        head 250
+    else:
+        strip-compile
+        head 100
+
+# ── update ────────────────────────────────────────────────────────
+update:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(Updating |Adding |Removing |Locking|note:)/
+        head 20
+        or "cargo update: ok"
+    else:
+        head 60
+
+# ── fmt ───────────────────────────────────────────────────────────
+fmt:
+    if exit failed:  raw
+    else:            head 40
+
+# ── install / publish / bench ─────────────────────────────────────
+install|publish|bench:
+    if exit failed:
+        raw
+    elif level ultra:
+        strip-compile
+        head 25
+    else:
+        strip-compile
+        head 80
+
+# ── default ───────────────────────────────────────────────────────
+*:
+    if exit failed:  raw
+    else:            head 40

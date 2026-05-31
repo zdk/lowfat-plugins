@@ -1,0 +1,86 @@
+#!/usr/bin/env lowfat-filter
+# helm-compact — compact helm output for LLM contexts.
+# env: $sub $level $exit $args
+#
+# install/upgrade/status dump a multi-page MANIFEST after the status block
+# and a multi-screen NOTES section before it. We keep the metadata
+# (NAME, STATUS, REVISION) and let head limits truncate the rest.
+# Every rule passes raw output straight through on a non-zero exit —
+# helm error blocks (failed release, hook failures) must reach the agent intact.
+
+# ── install / upgrade / status ────────────────────────────────────
+install|upgrade|status:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /^(NAME:|LAST DEPLOYED:|STATUS:|REVISION:|NAMESPACE:|TEST SUITE:|Release ")/
+                head 10
+                or-shell: printf 'helm %s: ok' "$sub"
+            lite:
+                head 120
+            else:
+                head 40
+
+# ── list / ls ─────────────────────────────────────────────────────
+list|ls:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra: head 30
+            lite:  head 200
+            else:  head 80
+
+# ── diff (helm-diff plugin) ───────────────────────────────────────
+diff:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra:
+                keep /^(\+|-|@@|Plan: |default,)/
+                head 80
+            lite:
+                head 400
+            else:
+                head 200
+
+# ── repo (add / update / list / remove) ───────────────────────────
+repo:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(Update Complete|"[^"]+" has been added|"[^"]+" has been removed|"[^"]+" has been updated|^NAME\s|Error)/
+        head 20
+    elif level lite:
+        head 80
+    else:
+        head 30
+
+# ── search ────────────────────────────────────────────────────────
+search:
+    if exit failed:
+        raw
+    else:
+        match level:
+            ultra: head 25
+            lite:  head 200
+            else:  head 80
+
+# ── uninstall / rollback / history ────────────────────────────────
+uninstall|rollback|history:
+    if exit failed:
+        raw
+    elif level ultra:
+        keep /(uninstalled|Rollback was a success|^REVISION|Error|release "[^"]+" uninstalled)/
+        head 12
+        or-shell: printf 'helm %s: ok' "$sub"
+    else:
+        head 40
+
+# ── default ───────────────────────────────────────────────────────
+*:
+    if exit failed:  raw
+    else:            head 40

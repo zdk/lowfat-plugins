@@ -1,0 +1,6 @@
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+ingress-nginx   ingress-nginx   3               2026-05-12 09:14:02.123 +0000 UTC       deployed        ingress-nginx-4.10.0    1.10.0
+cert-manager    cert-manager    2               2026-05-08 11:20:48.998 +0000 UTC       deployed        cert-manager-v1.14.4    v1.14.4
+my-app          production      1               2026-05-30 16:42:18.555 +0000 UTC       deployed        my-app-1.0.0            1.0.0
+redis           cache           5               2026-05-21 14:08:31.001 +0000 UTC       deployed        redis-19.5.2            7.2.5
+postgres        data            7               2026-05-19 08:55:12.227 +0000 UTC       deployed        postgresql-15.5.0       16.3.0

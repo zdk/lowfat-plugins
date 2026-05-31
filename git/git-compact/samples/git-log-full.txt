@@ -1,0 +1,64 @@
+commit e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3
+Author: Alice Engineer <alice@example.com>
+Date:   Thu May 30 11:14:22 2026 +0200
+
+    auth: rotate JWT signing keys on schedule
+
+    Adds a background task that rotates JWT signing keys every 24h.
+    The previous key is kept as a fallback for 1h to allow in-flight
+    sessions to validate. Closes #1842.
+
+commit a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0
+Author: Bob Reviewer <bob@example.com>
+Date:   Wed May 29 09:42:11 2026 +0200
+
+    deps: bump anyhow to 1.0.86
+
+    No code changes — picks up the new context-chaining helper.
+
+commit f9e8d7c6b5a4938271605948372615a0b1c2d3e4
+Author: Alice Engineer <alice@example.com>
+Date:   Tue May 28 16:08:55 2026 +0200
+
+    session: drop the redundant in-memory cache
+
+    The Redis-backed session store already does the equivalent caching
+    at the connection layer. Removing the local LRU drops 200 lines of
+    code and one source of cache-invalidation bugs.
+
+commit 1234567890abcdef1234567890abcdef12345678
+Merge: a1b2c3d 0987654
+Author: Carol Maintainer <carol@example.com>
+Date:   Tue May 28 10:22:01 2026 +0200
+
+    Merge pull request #1839 from example/feature/audit-log
+
+    audit: emit structured events for all auth operations
+
+commit 0987654321fedcba0987654321fedcba09876543
+Author: David Contributor <david@example.com>
+Date:   Mon May 27 14:55:33 2026 +0200
+
+    audit: emit structured events for all auth operations
+
+    Replaces the freeform log.info() calls with audit_log!() macro
+    so downstream pipelines can parse the events without regex.
+    The macro routes through tracing for now; a dedicated sink can
+    come later.
+
+commit aabbccddeeff00112233445566778899aabbccdd
+Author: Alice Engineer <alice@example.com>
+Date:   Mon May 27 09:18:47 2026 +0200
+
+    chore: format with rustfmt 1.7.0
+
+    Cosmetic only — the new defaults reflow chain calls.
+
+commit deadbeefcafebabe1234567890abcdef00112233
+Author: Bob Reviewer <bob@example.com>
+Date:   Fri May 24 18:30:12 2026 +0200
+
+    fix: handle empty tenant id without panicking
+
+    A request without the X-Tenant-Id header was unwrapping None.
+    Now returns 400 with a structured error. Adds a regression test.

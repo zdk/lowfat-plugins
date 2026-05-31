@@ -1,0 +1,160 @@
+PLAY [Deploy webapp to all app servers] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+TASK [common : Update apt cache] ***********************************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+TASK [common : Install base packages] ******************************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+TASK [common : Ensure firewall is configured] **********************************
+changed: [app-01]
+changed: [app-02]
+changed: [app-03]
+changed: [app-04]
+changed: [app-05]
+changed: [app-06]
+changed: [app-07]
+changed: [app-08]
+changed: [app-09]
+changed: [app-10]
+
+TASK [nginx : Install nginx] ***************************************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+TASK [nginx : Copy nginx config] ***********************************************
+changed: [app-01]
+changed: [app-02]
+changed: [app-03]
+changed: [app-04]
+changed: [app-05]
+changed: [app-06]
+changed: [app-07]
+changed: [app-08]
+changed: [app-09]
+changed: [app-10]
+
+TASK [nginx : Reload nginx] ****************************************************
+changed: [app-01]
+changed: [app-02]
+changed: [app-03]
+changed: [app-04]
+changed: [app-05]
+changed: [app-06]
+changed: [app-07]
+changed: [app-08]
+changed: [app-09]
+changed: [app-10]
+
+TASK [app : Pull latest container image] ***************************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+TASK [app : Run database migrations] *******************************************
+ok: [app-01]
+skipping: [app-02]
+skipping: [app-03]
+skipping: [app-04]
+skipping: [app-05]
+skipping: [app-06]
+skipping: [app-07]
+skipping: [app-08]
+skipping: [app-09]
+skipping: [app-10]
+
+TASK [app : Restart application service] ***************************************
+changed: [app-01]
+changed: [app-02]
+changed: [app-03]
+changed: [app-04]
+changed: [app-05]
+changed: [app-06]
+changed: [app-07]
+changed: [app-08]
+changed: [app-09]
+changed: [app-10]
+
+TASK [monitoring : Install node exporter] **************************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+TASK [monitoring : Configure prometheus scrape] ********************************
+ok: [app-01]
+ok: [app-02]
+ok: [app-03]
+ok: [app-04]
+ok: [app-05]
+ok: [app-06]
+ok: [app-07]
+ok: [app-08]
+ok: [app-09]
+ok: [app-10]
+
+META: ran handlers
+META: ran handlers
+
+PLAY RECAP *********************************************************************
+app-01                     : ok=12   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+app-02                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-03                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-04                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-05                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-06                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-07                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-08                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-09                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+app-10                     : ok=11   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0

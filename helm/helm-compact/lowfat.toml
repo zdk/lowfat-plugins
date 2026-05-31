@@ -1,0 +1,11 @@
+[plugin]
+name = "helm-compact"
+version = "0.1.0"
+description = "Compact helm output for LLM contexts"
+author = "zdk"
+commands = ["helm"]
+subcommands = ["install", "upgrade", "status", "list", "ls", "diff", "repo", "search", "uninstall", "rollback", "history"]
+bin = "helm"
+
+[runtime]
+entry = "filter.lf"

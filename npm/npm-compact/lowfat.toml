@@ -1,0 +1,11 @@
+[plugin]
+name = "npm-compact"
+version = "0.1.0"
+description = "Compact npm output for LLM contexts"
+author = "zdk"
+commands = ["npm"]
+subcommands = ["install", "i", "list", "ls", "audit", "outdated", "run", "test", "ci", "update"]
+bin = "npm"
+
+[runtime]
+entry = "filter.lf"

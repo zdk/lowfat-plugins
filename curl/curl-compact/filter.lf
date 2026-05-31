@@ -1,0 +1,38 @@
+#!/usr/bin/env lowfat-filter
+# curl-compact — compact curl output for LLM contexts.
+# env: $sub $level $exit $args
+# curl has no subcommands. Targets two noise sources:
+#   1. -v / --verbose handshake lines (`* ALPN ...`, `* TLS handshake ...`)
+#   2. progress meter (`% Total ...` rows) — these are emitted to stderr
+#      so they're usually outside the filter's stream, but some shells
+#      merge stderr→stdout.
+
+# The * prefix marks libcurl internal events; > and < are request/response
+# header dumps. None of these are useful to the agent unless something failed.
+define strip-verbose:
+    drop /^\* /
+    drop /^> /
+    drop /^< /
+
+# Progress meter rows look like "100  1234  100  1234 ...".
+define strip-progress:
+    drop /^\s+\d+\s+\d+\s+\d+\s+\d+/
+    drop /^\s+% Total\s+% Received/
+    drop /^\s+Dload\s+Upload/
+
+# ── default (only) ────────────────────────────────────────────────
+*:
+    if exit failed:
+        strip-progress
+        head 200
+    elif level ultra:
+        strip-verbose
+        strip-progress
+        head 30
+    elif level lite:
+        strip-progress
+        head 300
+    else:
+        strip-verbose
+        strip-progress
+        head 100

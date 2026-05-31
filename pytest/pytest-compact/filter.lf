@@ -1,0 +1,26 @@
+#!/usr/bin/env lowfat-filter
+# pytest-compact — compact pytest output for LLM contexts.
+# env: $sub $level $exit $args
+# pytest has no subcommands (positional args are test paths/expressions),
+# so everything routes through the catch-all.
+
+# ── default (only) ────────────────────────────────────────────────
+*:
+    if exit failed:
+        keep /(FAILED|ERROR|====|^E |^_+ .+_+$|^>   |passed|failed|short test summary|collected )/
+        head 300
+    elif level ultra:
+        keep /(passed|failed|skipped|PASSED|FAILED|====|short test summary|collected )/
+        head 40
+        or "pytest: ok"
+    elif level lite:
+        head 300
+    else:
+        drop /^platform .+ -- Python/
+        drop /^rootdir:/
+        drop /^plugins:/
+        drop /^cachedir:/
+        drop /^configfile:/
+        drop /^tests\/.+\.py [\.sxXF]+\s+\[/
+        drop /^={10,}$/
+        head 150

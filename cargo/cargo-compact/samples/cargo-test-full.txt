@@ -1,0 +1,42 @@
+    Updating crates.io index
+   Compiling proc-macro2 v1.0.86
+   Compiling unicode-ident v1.0.12
+   Compiling quote v1.0.36
+   Compiling syn v2.0.66
+   Compiling serde_derive v1.0.203
+   Compiling serde v1.0.203
+   Compiling thiserror-impl v1.0.61
+   Compiling thiserror v1.0.61
+   Compiling anyhow v1.0.86
+   Compiling regex v1.10.4
+   Compiling lazy_static v1.4.0
+   Compiling my-crate v0.1.0 (/Users/dev/projects/my-crate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.43s
+     Running unittests src/lib.rs (target/debug/deps/my_crate-abc123def456)
+
+running 8 tests
+test parser::tests::test_parse_empty ... ok
+test parser::tests::test_parse_simple ... ok
+test parser::tests::test_parse_nested ... ok
+test parser::tests::test_parse_with_comments ... ok
+test filter::tests::test_filter_empty ... ok
+test filter::tests::test_filter_basic ... FAILED
+test filter::tests::test_filter_unicode ... ok
+test util::tests::test_truncate ... ok
+
+failures:
+
+---- filter::tests::test_filter_basic stdout ----
+thread 'filter::tests::test_filter_basic' panicked at src/filter.rs:142:9:
+assertion `left == right` failed
+  left: "filtered output"
+ right: "expected output"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    filter::tests::test_filter_basic
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `--lib`

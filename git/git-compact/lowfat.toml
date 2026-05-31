@@ -1,0 +1,11 @@
+[plugin]
+name = "git-compact"
+version = "0.1.0"
+description = "Compact git output for LLM contexts"
+author = "zdk"
+commands = ["git", "g"]
+subcommands = ["status", "log", "diff", "show", "push", "pull", "fetch", "clone", "branch", "add", "commit", "reset", "restore", "stash", "tag"]
+bin = "git"
+
+[runtime]
+entry = "filter.lf"

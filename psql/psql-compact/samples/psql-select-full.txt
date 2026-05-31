@@ -1,0 +1,33 @@
+psql (16.3 (Homebrew), server 16.2)
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+Type "help" for help.
+
+You are connected to database "myapp_dev" as user "dev" on host "localhost" at port "5432".
+
+NOTICE:  table "audit_log" does not exist, skipping
+DROP TABLE
+NOTICE:  schema "reporting" already exists, skipping
+CREATE SCHEMA
+NOTICE:  CREATE TABLE will create implicit sequence "users_id_seq" for serial column "users.id"
+CREATE TABLE
+INSERT 0 5
+
+  id |  name   |       email        |       created_at        |  status
+-----+---------+--------------------+-------------------------+----------
+   1 | alice   | alice@example.com  | 2026-01-15 09:23:45.001 | active
+   2 | bob     | bob@example.com    | 2026-02-08 14:08:11.215 | active
+   3 | carol   | carol@example.com  | 2026-02-22 11:42:55.812 | active
+   4 | dave    | dave@example.com   | 2026-03-14 08:17:33.001 | inactive
+   5 | eve     | eve@example.com    | 2026-04-02 16:55:18.512 | active
+   6 | frank   | frank@example.com  | 2026-04-19 09:11:42.108 | active
+   7 | grace   | grace@example.com  | 2026-04-30 13:28:55.319 | active
+   8 | heidi   | heidi@example.com  | 2026-05-05 10:44:21.512 | active
+   9 | ivan    | ivan@example.com   | 2026-05-12 15:08:11.001 | banned
+  10 | judy    | judy@example.com   | 2026-05-25 11:33:42.215 | active
+(10 rows)
+
+NOTICE:  trigger "audit_users" does not exist, skipping
+DROP TRIGGER
+INFO:  analyzing "public.users"
+INFO:  "users": scanned 1 of 1 pages, containing 10 live rows and 0 dead rows; 10 rows in sample, 10 estimated total rows
+ANALYZE

@@ -1,0 +1,11 @@
+[plugin]
+name = "aws-compact"
+version = "0.1.0"
+description = "Compact AWS CLI output for LLM contexts"
+author = "zdk"
+commands = ["aws"]
+subcommands = ["ec2", "s3", "iam", "lambda", "logs", "cloudformation", "dynamodb", "sts", "ecs", "eks", "sqs", "sns", "rds", "ssm"]
+bin = "aws"
+
+[runtime]
+entry = "filter.lf"
