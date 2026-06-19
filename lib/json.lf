@@ -1,9 +1,10 @@
 # lib/json.lf — shared macros for JSON-heavy CLI output.
-# Not a plugin (no manifest); pulled in via `include ../../lib/json.lf`.
+# Not a plugin (no manifest); pulled in by other filters via `include`
+# (path is relative to the including file).
 
 # AST-aware JSON truncation — parse, prune arrays/objects, re-serialize.
-# Guarantees output is always valid JSON. Falls back to raw on parse error.
-# Honors $level: ultra keeps 3 items per node, lite 20, else 8.
+# Valid JSON in → valid JSON out; on parse error the input passes through
+# unchanged. Honors $level: ultra keeps 3 items per node, lite 20, else 8.
 define truncate-json:
     python: |
         import sys, json, os
