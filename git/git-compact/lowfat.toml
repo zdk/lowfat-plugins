@@ -1,6 +1,6 @@
 [plugin]
 name = "git-compact"
-version = "0.1.0"
+version = "0.1.1"
 description = "Compact git output for LLM contexts"
 author = "zdk"
 commands = ["git", "g"]

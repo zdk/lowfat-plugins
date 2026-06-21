@@ -1,6 +1,6 @@
 [plugin]
 name = "go-compact"
-version = "0.1.0"
+version = "0.1.1"
 description = "Compact go output for LLM contexts"
 author = "zdk"
 commands = ["go"]

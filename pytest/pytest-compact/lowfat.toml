@@ -1,6 +1,6 @@
 [plugin]
 name = "pytest-compact"
-version = "0.1.0"
+version = "0.1.1"
 description = "Compact pytest output for LLM contexts (failures-only at ultra)"
 author = "zdk"
 commands = ["pytest", "py.test"]

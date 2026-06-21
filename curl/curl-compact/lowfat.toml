@@ -1,6 +1,6 @@
 [plugin]
 name = "curl-compact"
-version = "0.1.0"
+version = "0.1.1"
 description = "Compact curl output for LLM contexts (strips verbose handshake + progress)"
 author = "zdk"
 commands = ["curl"]
