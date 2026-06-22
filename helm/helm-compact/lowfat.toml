@@ -1,6 +1,6 @@
 [plugin]
 name = "helm-compact"
-version = "0.1.0"
+version = "0.1.1"
 description = "Compact helm output for LLM contexts"
 author = "zdk"
 commands = ["helm"]

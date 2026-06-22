@@ -1,6 +1,6 @@
 [plugin]
 name = "aws-compact"
-version = "0.1.0"
+version = "0.1.1"
 description = "Compact AWS CLI output for LLM contexts"
 author = "zdk"
 commands = ["aws"]

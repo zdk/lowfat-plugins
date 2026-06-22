@@ -3,6 +3,9 @@
 # env: $sub $level $exit $args
 # Every rule passes raw output straight through on a non-zero exit.
 
+# `truncate-json` — shared with terraform-compact.
+include ../../lib/json.lf
+
 # managedFields and its 6 child keys — the biggest noise block in YAML output.
 define drop-managed-fields-yaml:
     drop /(managedFields:|  - manager:|    operation:|    time:|    apiVersion:|    fieldsType:|    fieldsV1:)/
@@ -20,53 +23,6 @@ define drop-describe-noise:
     drop /^\s+TokenExpirationSeconds:/
     drop /^\s+ConfigMapOptional:/
     drop /^\s+DownwardAPI:/
-
-# AST-aware JSON truncation — parse, prune arrays/objects, re-serialize.
-# Guarantees output is always valid JSON. Falls back to raw on parse error.
-define truncate-json:
-    python: |
-        import sys, json, os
-
-        def truncate_node(node, max_items, depth=0, max_depth=4):
-            if depth > max_depth:
-                if isinstance(node, dict):
-                    return {"__truncated__": f"{len(node)} keys"}
-                if isinstance(node, list):
-                    return [f"... {len(node)} items omitted ..."]
-                return node
-            if isinstance(node, list):
-                if len(node) <= max_items:
-                    return [truncate_node(v, max_items, depth+1, max_depth) for v in node]
-                kept = max_items // 2
-                head = [truncate_node(v, max_items, depth+1, max_depth) for v in node[:kept]]
-                tail = [truncate_node(v, max_items, depth+1, max_depth) for v in node[-kept:]]
-                return head + [f"... {len(node) - kept*2} items omitted ..."] + tail
-            if isinstance(node, dict):
-                if len(node) <= max_items:
-                    return {k: truncate_node(v, max_items, depth+1, max_depth) for k, v in node.items()}
-                keys = list(node.keys())
-                kept = max_items // 2
-                out = {}
-                for k in keys[:kept]:
-                    out[k] = truncate_node(node[k], max_items, depth+1, max_depth)
-                out["__omitted__"] = f"... {len(keys) - kept*2} keys omitted ..."
-                for k in keys[-kept:]:
-                    out[k] = truncate_node(node[k], max_items, depth+1, max_depth)
-                return out
-            return node
-
-        level = os.environ.get("level", "")
-        max_items = {"ultra": 3, "lite": 20}.get(level, 8)
-
-        raw = sys.stdin.read()
-        try:
-            data = json.loads(raw)
-            pruned = truncate_node(data, max_items)
-            out = json.dumps(pruned, indent=2, ensure_ascii=False)
-            json.loads(out)
-            print(out)
-        except (json.JSONDecodeError, ValueError):
-            print(raw, end="")
 
 # ── get ───────────────────────────────────────────────────────────
 # `-o json` → AST-aware truncation. `jsonpath`/unknown `-o` → raw for
