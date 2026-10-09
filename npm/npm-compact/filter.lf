@@ -7,48 +7,59 @@ define strip-deprecation:
     drop /^npm warn deprecated /
     drop /^npm WARN deprecated /
 
+# ── failed commands ───────────────────────────────────────────────
+rule audit-failed:
+    sub: audit
+    exit: failed
+    do:
+        keep /(severity|vulnerabilities|^# npm|^to address|^npm audit|^[0-9]+ vulnerabilities)/
+        head 200
+
+# Every other failed command keeps its full error output.
+rule failed:
+    exit: failed
+    do: raw
+
 # ── install / i / ci ──────────────────────────────────────────────
-install|i|ci:
-    if exit failed:
-        raw
-    elif level ultra:
-        keep /(added|removed|changed|audited|vulnerabilities|funding)/
-        head 15
-        or "npm $sub: ok"
-    elif level lite:
-        strip-deprecation
-        head 150
-    else:
-        strip-deprecation
-        head 50
+rule install:
+    sub: install|i|ci
+    do:
+        match level:
+            ultra:
+                keep /(added|removed|changed|audited|vulnerabilities|funding)/
+                head 15
+                or "npm $sub: ok"
+            lite:
+                strip-deprecation
+                head 150
+            else:
+                strip-deprecation
+                head 50
 
 # ── list / ls ─────────────────────────────────────────────────────
-list|ls:
-    if exit failed:
-        raw
-    else:
+rule list:
+    sub: list|ls
+    do:
         match level:
             ultra: head 30
             lite:  head 250
             else:  head 100
 
 # ── audit ─────────────────────────────────────────────────────────
-audit:
-    if exit failed:
-        keep /(severity|vulnerabilities|^# npm|^to address|^npm audit|^[0-9]+ vulnerabilities)/
-        head 200
-    elif level ultra:
-        keep /(severity|vulnerabilities|^# npm|^to address|^[0-9]+ vulnerabilities)/
-        head 30
-        or "npm audit: ok"
-    else:
-        head 80
+rule audit:
+    sub: audit
+    do:
+        match level:
+            ultra:
+                keep /(severity|vulnerabilities|^# npm|^to address|^[0-9]+ vulnerabilities)/
+                head 30
+                or "npm audit: ok"
+            else:  head 80
 
 # ── outdated ──────────────────────────────────────────────────────
-outdated:
-    if exit failed:
-        raw
-    else:
+rule outdated:
+    sub: outdated
+    do:
         match level:
             ultra: head 30
             lite:  head 200
@@ -57,27 +68,25 @@ outdated:
 # ── run / test ────────────────────────────────────────────────────
 # These pass through to user scripts; we cap by level but can't filter
 # semantically without knowing what the script does.
-run|test:
-    if exit failed:
-        raw
-    else:
+rule run:
+    sub: run|test
+    do:
         match level:
             ultra: head 60
             lite:  head 300
             else:  head 150
 
 # ── update ────────────────────────────────────────────────────────
-update:
-    if exit failed:
-        raw
-    elif level ultra:
-        keep /(added|removed|changed|up to date)/
-        head 15
-        or "npm update: ok"
-    else:
-        head 60
+rule update:
+    sub: update
+    do:
+        match level:
+            ultra:
+                keep /(added|removed|changed|up to date)/
+                head 15
+                or "npm update: ok"
+            else:  head 60
 
 # ── default ───────────────────────────────────────────────────────
-*:
-    if exit failed:  raw
-    else:            head 40
+rule other:
+    do: head 40

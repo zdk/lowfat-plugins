@@ -17,94 +17,95 @@ define strip-empty-collections:
     drop /^\s+"[A-Za-z]+": \{\},?$/
     drop /^\s+"[A-Za-z]+": "",?$/
 
+# ── failed commands ───────────────────────────────────────────────
+# A failed command keeps its full error output.
+rule failed:
+    exit: failed
+    do: raw
+
 # ── ec2 / rds / lambda / ecs / eks / cloudformation (verbose JSON) ──
-ec2|rds|lambda|ecs|eks|cloudformation|elbv2|elasticache:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-json-frame
-        strip-empty-collections
-        head 40
-    elif level lite:
-        strip-empty-collections
-        head 500
-    else:
-        strip-json-frame
-        strip-empty-collections
-        head 80
+rule ec2:
+    sub: ec2|rds|lambda|ecs|eks|cloudformation|elbv2|elasticache
+    do:
+        match level:
+            ultra:
+                strip-json-frame
+                strip-empty-collections
+                head 40
+            lite:
+                strip-empty-collections
+                head 500
+            else:
+                strip-json-frame
+                strip-empty-collections
+                head 80
 
 # ── iam (huge with attached policies) ─────────────────────────────
-iam:
-    if exit failed:
-        raw
-    elif level ultra:
-        keep /("(UserName|RoleName|PolicyName|Arn|CreateDate)":)/
-        head 60
-    elif level lite:
-        strip-empty-collections
-        head 500
-    else:
-        strip-json-frame
-        strip-empty-collections
-        head 100
+rule iam:
+    sub: iam
+    do:
+        match level:
+            ultra:
+                keep /("(UserName|RoleName|PolicyName|Arn|CreateDate)":)/
+                head 60
+            lite:
+                strip-empty-collections
+                head 500
+            else:
+                strip-json-frame
+                strip-empty-collections
+                head 100
 
 # ── s3 (file listings) ────────────────────────────────────────────
-s3:
-    if exit failed:
-        raw
-    elif level ultra:
-        head 30
-    elif level lite:
-        head 500
-    else:
-        head 100
+rule s3:
+    sub: s3
+    do:
+        match level:
+            ultra: head 30
+            lite:  head 500
+            else:  head 100
 
 # ── logs (get-log-events: timestamps + messages) ──────────────────
-logs:
-    if exit failed:
-        raw
-    elif level ultra:
-        head 40
-    elif level lite:
-        head 500
-    else:
-        head 100
+rule logs:
+    sub: logs
+    do:
+        match level:
+            ultra: head 40
+            lite:  head 500
+            else:  head 100
 
 # ── dynamodb (type-annotated values inflate output) ───────────────
-dynamodb:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-json-frame
-        strip-empty-collections
-        head 40
-    elif level lite:
-        strip-empty-collections
-        head 500
-    else:
-        strip-json-frame
-        strip-empty-collections
-        head 100
+rule dynamodb:
+    sub: dynamodb
+    do:
+        match level:
+            ultra:
+                strip-json-frame
+                strip-empty-collections
+                head 40
+            lite:
+                strip-empty-collections
+                head 500
+            else:
+                strip-json-frame
+                strip-empty-collections
+                head 100
 
 # ── sts / sqs / sns / ssm (smaller responses) ─────────────────────
-sts|sqs|sns|ssm:
-    if exit failed:
-        raw
-    elif level ultra:
-        head 25
-    elif level lite:
-        head 300
-    else:
-        head 60
+rule sts:
+    sub: sts|sqs|sns|ssm
+    do:
+        match level:
+            ultra: head 25
+            lite:  head 300
+            else:  head 60
 
 # ── default ───────────────────────────────────────────────────────
-*:
-    if exit failed:
-        raw
-    elif level ultra:
-        head 40
-    elif level lite:
-        head 400
-    else:
-        strip-empty-collections
-        head 80
+rule other:
+    do:
+        match level:
+            ultra: head 40
+            lite:  head 400
+            else:
+                strip-empty-collections
+                head 80

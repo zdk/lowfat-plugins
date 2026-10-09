@@ -186,7 +186,8 @@ build|check:
 
 A named rule lists what it matches as fields. The first rule whose fields
 all hold runs, so shared policy is written once. Needs lowfat 0.9.0.
-See [`kubectl-compact`](kubectl/kubectl-compact/filter.lf) for a full file.
+Every plugin in this repo is written this way. See
+[`kubectl-compact`](kubectl/kubectl-compact/filter.lf) for a full file.
 
 ```
 rule failed:

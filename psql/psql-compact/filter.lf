@@ -15,19 +15,29 @@ define strip-notices:
     drop /^INFO: /
     drop /^DEBUG: /
 
-# ── default (only) ────────────────────────────────────────────────
-*:
-    if exit failed:
+# ── failed commands ───────────────────────────────────────────────
+rule failed:
+    exit: failed
+    do:
         strip-banner
         head 200
-    elif level ultra:
+
+# ── default (only) ────────────────────────────────────────────────
+rule ultra:
+    level: ultra
+    do:
         strip-banner
         strip-notices
         head 40
-    elif level lite:
+
+rule lite:
+    level: lite
+    do:
         strip-banner
         head 300
-    else:
+
+rule default:
+    do:
         strip-banner
         strip-notices
         head 120

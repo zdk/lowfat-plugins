@@ -17,11 +17,16 @@ define strip-hints:
     drop /^\s+\(use /
     drop /^\s+\(commit or discard /
 
+# ── failed commands ───────────────────────────────────────────────
+# A failed command keeps its full error output.
+rule failed:
+    exit: failed
+    do: raw
+
 # ── status ────────────────────────────────────────────────────────
-status:
-    if exit failed:
-        raw
-    else:
+rule status:
+    sub: status
+    do:
         match level:
             ultra:
                 keep /^(On branch|Your branch|HEAD detached|nothing to commit|	|modified:|new file:|deleted:|renamed:|Untracked files:|Changes (not staged|to be committed):)/
@@ -36,10 +41,9 @@ status:
 # ── log ───────────────────────────────────────────────────────────
 # Date: lines are redundant with commit ordering; drop for an easy win on
 # unbounded `git log`. At ultra we keep only the metadata headers.
-log:
-    if exit failed:
-        raw
-    else:
+rule log:
+    sub: log
+    do:
         match level:
             ultra:
                 keep /^(commit |Merge: |Author: )/
@@ -52,10 +56,9 @@ log:
                 head 120
 
 # ── diff / show ───────────────────────────────────────────────────
-diff|show:
-    if exit failed:
-        raw
-    else:
+rule diff:
+    sub: diff|show
+    do:
         match level:
             ultra:
                 keep /^(diff --git|@@|---|\+\+\+|\+[^+]|-[^-])/
@@ -66,56 +69,57 @@ diff|show:
                 head 200
 
 # ── push / pull / fetch / clone ───────────────────────────────────
-push|pull|fetch|clone:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-progress
-        keep /^(To |From |   [0-9a-f]+\.\.[0-9a-f]+|Already up to date|Updating |Fast-forward| \d+ file|Branch |\* \[new)/
-        head 10
-        or-shell: printf 'git %s: ok' "$sub"
-    elif level lite:
-        strip-progress
-        head 60
-    else:
-        strip-progress
-        head 25
+rule push:
+    sub: push|pull|fetch|clone
+    do:
+        match level:
+            ultra:
+                strip-progress
+                keep /^(To |From |   [0-9a-f]+\.\.[0-9a-f]+|Already up to date|Updating |Fast-forward| \d+ file|Branch |\* \[new)/
+                head 10
+                or-shell: printf 'git %s: ok' "$sub"
+            lite:
+                strip-progress
+                head 60
+            else:
+                strip-progress
+                head 25
 
 # ── branch ────────────────────────────────────────────────────────
-branch:
-    if exit failed:
-        raw
-    else:
+rule branch:
+    sub: branch
+    do:
         match level:
             ultra: head 25
             lite:  head 150
             else:  head 60
 
 # ── add / reset / restore / stash / tag ──────────────────────────
-add|reset|restore|stash|tag:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-hints
-        head 5
-        or-shell: printf 'git %s: ok' "$sub"
-    else:
-        strip-hints
-        head 25
+rule add:
+    sub: add|reset|restore|stash|tag
+    do:
+        match level:
+            ultra:
+                strip-hints
+                head 5
+                or-shell: printf 'git %s: ok' "$sub"
+            else:
+                strip-hints
+                head 25
 
 # ── commit ────────────────────────────────────────────────────────
-commit:
-    if exit failed:
-        raw
-    elif level ultra:
-        keep /^\[/
-        head 3
-        or "git commit: ok"
-    else:
-        strip-hints
-        head 30
+rule commit:
+    sub: commit
+    do:
+        match level:
+            ultra:
+                keep /^\[/
+                head 3
+                or "git commit: ok"
+            else:
+                strip-hints
+                head 30
 
 # ── default ───────────────────────────────────────────────────────
-*:
-    if exit failed:  raw
-    else:            head 40
+rule other:
+    do: head 40
