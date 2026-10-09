@@ -141,79 +141,39 @@ my-tool/my-tool-compact/
 └── samples/*.txt   # captured output for `lowfat plugin bench`
 ```
 
-### DSL primer
+### Rules
 
-A complete `.lf` file:
-
-```
-# Shared rule blocks — define once, reuse below.
-define strip-progress:
-    drop /^Downloading /
-    drop /^Compiling /
-
-# Subcommand selector — | alternates, * is catch-all.
-build|check:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-progress
-        keep /(error|warning)/
-        head 30
-        or "mytool build: ok"
-    else:
-        strip-progress
-        head 80
-
-*:
-    if exit failed:  raw
-    else:            head 40
-```
-
-| Primitive                                     | What it does                                            |
-| --------------------------------------------- | ------------------------------------------------------- |
-| `drop /regex/`                                | Remove lines matching the regex                         |
-| `keep /regex/`                                | Remove lines **not** matching the regex                 |
-| `head N` / `tail N`                           | Keep first / last N lines                               |
-| `raw`                                         | Pass output through unchanged                           |
-| `or "literal"` / `or-shell: cmd`              | Fallback text if empty (`$sub`, `$level` available)     |
-| `define name:`                                | Declare a reusable rule block                           |
-| `if exit failed:` … `elif level X:` … `else:` | Branch on exit code / level                             |
-| `match level: ultra: / lite: / else:`         | Compact alternative to an elif chain                    |
-| `cmd1\|cmd2:` / `*:`                          | Subcommand selector with alternation / catch-all        |
-| `rule name:` + `sub:` `level:` `exit:` `flag:` | Named rule: runs its `do:` body when every field holds  |
-
-### Named rules
-
-A named rule lists what it matches as fields. The first rule whose fields
-all hold runs, so shared policy is written once. Needs lowfat 0.9.0.
-Every plugin in this repo is written this way. See
-[`kubectl-compact`](kubectl/kubectl-compact/filter.lf) for a full file.
+A `filter.lf` file is a list of named rules. lowfat runs the first rule whose
+fields all hold. Needs lowfat 0.9.0 or newer.
 
 ```
+# A failed command keeps its full error output.
 rule failed:
     exit: failed
     do: raw
 
-rule json:
-    flag: -o|--output json
-    do: truncate-json
-
-rule get:
-    sub: get
+rule build:
+    sub: build|check
     do:
-        drop-managed-fields-yaml
-        head 80
+        match level:
+            ultra:
+                keep /(error|warning)/
+                head 30
+                or "mytool build: ok"
+            else:
+                drop /^Compiling /
+                head 80
+
+rule other:
+    do: head 40
 ```
 
-### Test as you go
+The full guide is in [docs/DSL.md](docs/DSL.md): fields, ops, levels, macros,
+JSON output and how to test.
 
-```sh
-mytool build > samples/build-full.txt
-cat samples/build-full.txt | lowfat filter filter.lf --sub=build --explain
-lowfat plugin bench mytool-compact
-```
-
-**Please keep the failure guard.** Every subcommand should open with `if exit failed: raw` (or a near-raw failure view), or the file should start with a `rule` that has `exit: failed`, so agents get the full error when things break. PRs that filter the failure path will be asked to add it.
+**Please keep the failure rule.** Start every file with a rule that has
+`exit: failed`, so agents get the full error when things break. PRs that
+filter the failure path will be asked to add it.
 
 ## Contributing
 
