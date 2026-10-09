@@ -20,19 +20,29 @@ define strip-progress:
     drop /^\s+% Total\s+% Received/
     drop /^\s+Dload\s+Upload/
 
-# ── default (only) ────────────────────────────────────────────────
-*:
-    if exit failed:
+# ── failed commands ───────────────────────────────────────────────
+rule failed:
+    exit: failed
+    do:
         strip-progress
         head 200
-    elif level ultra:
+
+# ── default (only) ────────────────────────────────────────────────
+rule ultra:
+    level: ultra
+    do:
         strip-verbose
         strip-progress
         head 30
-    elif level lite:
+
+rule lite:
+    level: lite
+    do:
         strip-progress
         head 300
-    else:
+
+rule default:
+    do:
         strip-verbose
         strip-progress
         head 100

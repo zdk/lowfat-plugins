@@ -17,19 +17,29 @@ define strip-meta:
     drop /^\s*$/
     drop /^\*+$/
 
-# ── default (only) ────────────────────────────────────────────────
-*:
-    if exit failed:
+# ── failed commands ───────────────────────────────────────────────
+rule failed:
+    exit: failed
+    do:
         keep /^(PLAY |TASK |fatal:|FAILED|failed:|changed:|PLAY RECAP|\S+\s+:\s+ok=)/
         head 300
-    elif level ultra:
+
+# ── default (only) ────────────────────────────────────────────────
+rule ultra:
+    level: ultra
+    do:
         keep /^(PLAY \[|TASK \[|fatal:|failed:|changed:|PLAY RECAP|\S+\s+:\s+ok=)/
         head 80
         or "ansible-playbook: ok"
-    elif level lite:
+
+rule lite:
+    level: lite
+    do:
         drop-ok-status
         head 400
-    else:
+
+rule default:
+    do:
         drop-ok-status
         strip-meta
         head 200

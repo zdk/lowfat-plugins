@@ -22,94 +22,107 @@ define strip-warn-meta:
     drop /^   --> /
     drop /^    = note:/
 
-# ── build / check ─────────────────────────────────────────────────
-build|check:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-compile
-        keep /(warning:|error|note: |help:)/
-        head 40
-        or "cargo $sub: ok"
-    elif level lite:
-        head 250
-    else:
-        strip-compile
-        head 80
-
-# ── clippy ────────────────────────────────────────────────────────
-clippy:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-compile
-        keep /(warning:|error|help:|^   = note:)/
-        head 40
-        or "cargo clippy: ok"
-    elif level lite:
-        head 300
-    else:
-        strip-compile
-        head 100
-
-# ── test ──────────────────────────────────────────────────────────
-test:
-    if exit failed:
+# ── failed commands ───────────────────────────────────────────────
+rule test-failed:
+    sub: test
+    exit: failed
+    do:
         strip-compile
         keep /(test result:|FAILED|failures:|---- |running |^test .+ \.\.\. (ok|FAILED|ignored)|panicked at|thread .+ panicked)/
         head 250
-    elif level ultra:
-        keep /(test result:|FAILED|^test .+ \.\.\. (ok|FAILED))/
-        head 40
-        or "cargo test: ok"
-    elif level lite:
-        strip-compile
-        head 300
-    else:
-        strip-compile
-        head 150
+
+# Every other failed command keeps its full error output.
+rule failed:
+    exit: failed
+    do: raw
+
+# ── build / check ─────────────────────────────────────────────────
+rule build:
+    sub: build|check
+    do:
+        match level:
+            ultra:
+                strip-compile
+                keep /(warning:|error|note: |help:)/
+                head 40
+                or "cargo $sub: ok"
+            lite:  head 250
+            else:
+                strip-compile
+                head 80
+
+# ── clippy ────────────────────────────────────────────────────────
+rule clippy:
+    sub: clippy
+    do:
+        match level:
+            ultra:
+                strip-compile
+                keep /(warning:|error|help:|^   = note:)/
+                head 40
+                or "cargo clippy: ok"
+            lite:  head 300
+            else:
+                strip-compile
+                head 100
+
+# ── test ──────────────────────────────────────────────────────────
+rule test:
+    sub: test
+    do:
+        match level:
+            ultra:
+                keep /(test result:|FAILED|^test .+ \.\.\. (ok|FAILED))/
+                head 40
+                or "cargo test: ok"
+            lite:
+                strip-compile
+                head 300
+            else:
+                strip-compile
+                head 150
 
 # ── run / doc ─────────────────────────────────────────────────────
-run|doc:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-compile
-        head 30
-    elif level lite:
-        head 250
-    else:
-        strip-compile
-        head 100
+rule run:
+    sub: run|doc
+    do:
+        match level:
+            ultra:
+                strip-compile
+                head 30
+            lite:  head 250
+            else:
+                strip-compile
+                head 100
 
 # ── update ────────────────────────────────────────────────────────
-update:
-    if exit failed:
-        raw
-    elif level ultra:
-        keep /(Updating |Adding |Removing |Locking|note:)/
-        head 20
-        or "cargo update: ok"
-    else:
-        head 60
+rule update:
+    sub: update
+    do:
+        match level:
+            ultra:
+                keep /(Updating |Adding |Removing |Locking|note:)/
+                head 20
+                or "cargo update: ok"
+            else:  head 60
 
 # ── fmt ───────────────────────────────────────────────────────────
-fmt:
-    if exit failed:  raw
-    else:            head 40
+rule fmt:
+    sub: fmt
+    do: head 40
 
 # ── install / publish / bench ─────────────────────────────────────
-install|publish|bench:
-    if exit failed:
-        raw
-    elif level ultra:
-        strip-compile
-        head 25
-    else:
-        strip-compile
-        head 80
+rule install:
+    sub: install|publish|bench
+    do:
+        match level:
+            ultra:
+                strip-compile
+                head 25
+            else:
+                strip-compile
+                head 80
 
 # ── default ───────────────────────────────────────────────────────
-*:
-    if exit failed:  raw
-    else:            head 40
+rule other:
+    do: head 40

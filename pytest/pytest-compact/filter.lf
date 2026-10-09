@@ -4,18 +4,27 @@
 # pytest has no subcommands (positional args are test paths/expressions),
 # so everything routes through the catch-all.
 
-# ── default (only) ────────────────────────────────────────────────
-*:
-    if exit failed:
+# ── failed commands ───────────────────────────────────────────────
+rule failed:
+    exit: failed
+    do:
         keep /(FAILED|ERROR|====|^E |^_+ .+_+$|^>   |passed|failed|short test summary|collected )/
         head 300
-    elif level ultra:
+
+# ── default (only) ────────────────────────────────────────────────
+rule ultra:
+    level: ultra
+    do:
         keep /(passed|failed|skipped|PASSED|FAILED|====|short test summary|collected )/
         head 40
         or "pytest: ok"
-    elif level lite:
-        head 300
-    else:
+
+rule lite:
+    level: lite
+    do: head 300
+
+rule default:
+    do:
         drop /^platform .+ -- Python/
         drop /^rootdir:/
         drop /^plugins:/
