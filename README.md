@@ -4,7 +4,7 @@ Community plugins for [`lowfat`](https://github.com/zdk/lowfat) — each one com
 
 ## Quickstart
 
-Install `lowfat` first ([how](https://github.com/zdk/lowfat#install)), then:
+Install `lowfat` 0.9.0 or newer first ([how](https://github.com/zdk/lowfat#install)), then:
 
 ```sh
 # Clone every plugin into lowfat's scan directory
@@ -97,7 +97,7 @@ lowfat level         # show current level
 
 Override per-run with `LOWFAT_LEVEL=ultra lowfat terraform plan`.
 
-**Failure is always safe.** Every plugin opens each subcommand with `if exit failed: raw`, so when a command fails you get the full error — compile errors, terraform diagnostics, pytest tracebacks — even at `ultra`.
+**Failure is always safe.** Every plugin passes a failed command through raw, with `if exit failed: raw` or a `rule` that has `exit: failed`. So when a command fails you get the full error — compile errors, terraform diagnostics, pytest tracebacks — even at `ultra`.
 
 ## Troubleshooting
 
@@ -180,6 +180,29 @@ build|check:
 | `if exit failed:` … `elif level X:` … `else:` | Branch on exit code / level                             |
 | `match level: ultra: / lite: / else:`         | Compact alternative to an elif chain                    |
 | `cmd1\|cmd2:` / `*:`                          | Subcommand selector with alternation / catch-all        |
+| `rule name:` + `sub:` `level:` `exit:` `flag:` | Named rule: runs its `do:` body when every field holds  |
+
+### Named rules
+
+A named rule lists what it matches as fields. The first rule whose fields
+all hold runs, so shared policy is written once. Needs lowfat 0.9.0.
+See [`kubectl-compact`](kubectl/kubectl-compact/filter.lf) for a full file.
+
+```
+rule failed:
+    exit: failed
+    do: raw
+
+rule json:
+    flag: -o|--output json
+    do: truncate-json
+
+rule get:
+    sub: get
+    do:
+        drop-managed-fields-yaml
+        head 80
+```
 
 ### Test as you go
 
@@ -189,7 +212,7 @@ cat samples/build-full.txt | lowfat filter filter.lf --sub=build --explain
 lowfat plugin bench mytool-compact
 ```
 
-**Please keep the failure guard.** Every subcommand should open with `if exit failed: raw` (or a near-raw failure view) so agents get the full error when things break. PRs that filter the failure path will be asked to add it.
+**Please keep the failure guard.** Every subcommand should open with `if exit failed: raw` (or a near-raw failure view), or the file should start with a `rule` that has `exit: failed`, so agents get the full error when things break. PRs that filter the failure path will be asked to add it.
 
 ## Contributing
 

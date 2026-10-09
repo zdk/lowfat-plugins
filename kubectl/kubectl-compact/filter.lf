@@ -1,7 +1,7 @@
 #!/usr/bin/env lowfat-filter
 # kubectl-compact — compact kubectl/k output for LLM contexts.
 # env: $sub $level $exit $args
-# Every rule passes raw output straight through on a non-zero exit.
+# Rules run top to bottom. The first rule whose fields all hold wins.
 
 # `truncate-json` — shared with terraform-compact.
 include ../../lib/json.lf
@@ -24,80 +24,63 @@ define drop-describe-noise:
     drop /^\s+ConfigMapOptional:/
     drop /^\s+DownwardAPI:/
 
+# `get` YAML at each level. Macros cannot hold a `match`, so each level
+# gets its own macro and the rules below pick one.
+define compact-yaml-ultra:
+    drop-managed-fields-yaml
+    drop /^\s*$/
+    head 30
+
+define compact-yaml-lite:
+    drop-managed-fields-yaml
+    head 200
+
+define compact-yaml:
+    drop-managed-fields-yaml
+    drop /kubectl\.kubernetes\.io\/last-applied-configuration/
+    drop /^\s*f:[a-zA-Z]/
+    head 80
+
+# ── any subcommand ────────────────────────────────────────────────
+# A failed command keeps its full error output.
+rule failed:
+    exit: failed
+    do: raw
+
+# AST-aware truncation: valid JSON in, valid JSON out.
+rule json:
+    flag: -o|--output json
+    do: truncate-json
+
 # ── get ───────────────────────────────────────────────────────────
-# `-o json` → AST-aware truncation. `jsonpath`/unknown `-o` → raw for
-# downstream parsers. `-o yaml` or no `-o` → prune managedFields.
-get:
-    if exit failed:
-        raw
-    elif -o json:
-        truncate-json
-    elif --output json:
-        truncate-json
-    elif -o jsonpath:
-        raw
-    elif --output jsonpath:
-        raw
-    elif -o yaml:
+rule get-yaml:
+    sub: get
+    flag: -o|--output yaml
+    do:
         match level:
-            ultra:
-                drop-managed-fields-yaml
-                drop /^\s*$/
-                head 30
-            lite:
-                drop-managed-fields-yaml
-                head 200
-            else:
-                drop-managed-fields-yaml
-                drop /kubectl\.kubernetes\.io\/last-applied-configuration/
-                drop /^\s*f:[a-zA-Z]/
-                head 80
-    elif --output yaml:
+            ultra: compact-yaml-ultra
+            lite:  compact-yaml-lite
+            else:  compact-yaml
+
+# Any other explicit format (`jsonpath`, `name`, `wide`, …) is headed for a
+# downstream parser and must stay byte-exact.
+rule formatted:
+    flag: -o|--output
+    do: raw
+
+# No `-o`: same pruning as YAML.
+rule get:
+    sub: get
+    do:
         match level:
-            ultra:
-                drop-managed-fields-yaml
-                drop /^\s*$/
-                head 30
-            lite:
-                drop-managed-fields-yaml
-                head 200
-            else:
-                drop-managed-fields-yaml
-                drop /kubectl\.kubernetes\.io\/last-applied-configuration/
-                drop /^\s*f:[a-zA-Z]/
-                head 80
-    elif -o:
-        raw
-    elif --output:
-        raw
-    else:
-        match level:
-            ultra:
-                drop-managed-fields-yaml
-                drop /^\s*$/
-                head 30
-            lite:
-                drop-managed-fields-yaml
-                head 200
-            else:
-                drop-managed-fields-yaml
-                drop /kubectl\.kubernetes\.io\/last-applied-configuration/
-                drop /^\s*f:[a-zA-Z]/
-                head 80
+            ultra: compact-yaml-ultra
+            lite:  compact-yaml-lite
+            else:  compact-yaml
 
 # ── describe ──────────────────────────────────────────────────────
-describe:
-    if exit failed:
-        raw
-    elif -o json:
-        truncate-json
-    elif --output json:
-        truncate-json
-    elif -o:
-        raw
-    elif --output:
-        raw
-    else:
+rule describe:
+    sub: describe
+    do:
         match level:
             ultra:
                 keep /^(Name:|Namespace:|Labels:|Status:|Type |Node:|IP:|Events:|  Type|  ----|  Normal|  Warning|Conditions:|Ready|Replicas:)/
@@ -113,10 +96,9 @@ describe:
                 head 150
 
 # ── apply / delete ────────────────────────────────────────────────
-apply:
-    if exit failed:
-        raw
-    else:
+rule apply:
+    sub: apply
+    do:
         match level:
             ultra:
                 keep /(configured|created|unchanged|error|warning)/
@@ -126,10 +108,9 @@ apply:
             else:
                 head 40
 
-delete:
-    if exit failed:
-        raw
-    else:
+rule delete:
+    sub: delete
+    do:
         match level:
             ultra:
                 keep /(deleted|error|warning|not found)/
@@ -140,20 +121,18 @@ delete:
                 head 30
 
 # ── logs (always tail) ────────────────────────────────────────────
-logs:
-    if exit failed:
-        raw
-    else:
+rule logs:
+    sub: logs
+    do:
         match level:
             ultra: tail 50
             lite:  tail 200
             else:  tail 100
 
 # ── events ────────────────────────────────────────────────────────
-events:
-    if exit failed:
-        raw
-    else:
+rule events:
+    sub: events
+    do:
         match level:
             ultra:
                 keep /(Warning|Error|LAST SEEN|TYPE)/
@@ -164,10 +143,5 @@ events:
                 head 50
 
 # ── default ───────────────────────────────────────────────────────
-*:
-    if exit failed:  raw
-    elif -o json:    truncate-json
-    elif --output json: truncate-json
-    elif -o:         raw
-    elif --output:   raw
-    else:            head 40
+rule other:
+    do: head 40
